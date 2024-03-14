@@ -1,0 +1,12 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "docker-compose build",
+    "up": "docker-compose up"
+  },
+  "author": "",
+  "license": "ISC"
+}
