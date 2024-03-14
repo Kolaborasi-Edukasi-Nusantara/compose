@@ -2,9 +2,9 @@ version: "3"
 name: vokraf-backend
 
 services:
-  api-gateway-learning:
+  api-gateway:
     build:
-      context: ./apps/api-gateway-learning
+      context: ./apps/api-gateway
       dockerfile: ./Dockerfile
       target: development
     command: pnpm run start:dev
