@@ -4,7 +4,7 @@ name: vokraf-backend
 services:
   api-gateway:
     build:
-      context: ./apps/api-gateway
+      context: ../apps/api-gateway
       dockerfile: ./Dockerfile
       target: development
     command: pnpm run start:dev
@@ -17,7 +17,7 @@ services:
 
   user-service:
     build:
-      context: ./apps/user-service
+      context: ../apps/user-service
       dockerfile: ./Dockerfile
       target: development
     command: pnpm run start:dev
