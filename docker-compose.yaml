@@ -15,6 +15,17 @@ services:
     depends_on:
       - kafka
 
+  messaging-service:
+    build:
+      context: ../apps/messaging-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    env_file:
+      - .env.local
+    depends_on:
+      - kafka
+
   user-service:
     build:
       context: ../apps/user-service
