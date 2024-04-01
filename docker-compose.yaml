@@ -36,16 +36,18 @@ services:
       - .env.local
     depends_on:
       - kafka
-      - user-db
+      - db
 
-  user-db:
+  db:
     image: postgres
     restart: always
     shm_size: 128mb
+    volumes:
+      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=user
+      - POSTGRES_MULTIPLE_DATABASE="class, user"
     ports:
       - 5432:5432
 
