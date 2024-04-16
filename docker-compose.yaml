@@ -36,10 +36,10 @@ services:
       - .env.local
     depends_on:
       - kafka
-      - db
+      - db-user
 
-  db:
-    image: postgres
+  db-user:
+    image: postgres:11.5-alpine
     restart: always
     shm_size: 128mb
     volumes:
@@ -47,7 +47,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_MULTIPLE_DATABASE="class, user"
+      - POSTGRES_DB=user
     ports:
       - 5432:5432
 
