@@ -2,16 +2,16 @@ version: "3"
 name: vokraf-backend
 
 services:
-  api-gateway:
+  api-gateway-consumer:
     build:
-      context: ../apps/api-gateway
+      context: ../apps/api-gateway-consumer
       dockerfile: ./Dockerfile
       target: development
     command: pnpm run start:dev
     env_file:
       - .env.local
     ports:
-      - 3000:3000
+      - 8080:8080
     depends_on:
       - kafka
 
