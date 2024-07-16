@@ -240,6 +240,19 @@ services:
   #   ports:
   #     - 5433:5432
 
+  db-learning:
+    image: postgres:11.5-alpine
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=user
+    ports:
+      - 5436:5432
+
   zoo:
     image: confluentinc/cp-zookeeper:latest
     hostname: zoo
