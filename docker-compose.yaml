@@ -2,6 +2,7 @@ version: "3"
 name: vokraf-backend
 
 services:
+  # api gateway
   api-gateway-consumer:
     build:
       context: ../apps/api-gateway-consumer
@@ -9,12 +10,30 @@ services:
       target: development
     command: pnpm run start:dev
     env_file:
-      - .env.local
+      - ../apps/api-gateway-consumer/.env.local
+    environment:
+      - KAFKA_HOST=host.docker.internal:29092
     ports:
-      - 8080:8080
+      - 3000:3000
     depends_on:
       - kafka
 
+  api-gateway-learning:
+    build:
+      context: ../apps/api-gateway-learning
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    env_file:
+      - ../apps/api-gateway-learning/.env.local
+    environment:
+      - KAFKA_HOST=host.docker.internal:29092
+    ports:
+      - 3001:3001
+    depends_on:
+      - kafka
+
+  # blog
   blog-service:
     build:
       context: ../apps/blog-service
@@ -22,35 +41,14 @@ services:
       target: development
     command: pnpm run start:dev
     env_file:
-      - .env.local
+      - ../apps/blog-service/.env.local
+    environment:
+      - KAFKA_HOST=host.docker.internal:29092
     depends_on:
       - kafka
-      - db-blog
+      - blog-db
 
-  messaging-service:
-    build:
-      context: ../apps/messaging-service
-      dockerfile: ./Dockerfile
-      target: development
-    command: pnpm run start:dev
-    env_file:
-      - .env.local
-    depends_on:
-      - kafka
-
-  user-service:
-    build:
-      context: ../apps/user-service
-      dockerfile: ./Dockerfile
-      target: development
-    command: pnpm run start:dev
-    env_file:
-      - .env.local
-    depends_on:
-      - kafka
-      - db-user
-
-  db-blog:
+  blog-db:
     image: postgres:latest
     restart: always
     shm_size: 128mb
@@ -60,11 +58,22 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=blog
-      - POSTGRES_PORT=5435
     ports:
       - 5435:5432
 
-  db-course:
+  certificate-service:
+    build:
+      context: ../apps/certificate-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    env_file:
+      - ../apps/certificate-service/.env.local
+    depends_on:
+      - kafka
+      - certificate-db
+
+  certificate-db:
     image: postgres:latest
     restart: always
     shm_size: 128mb
@@ -73,23 +82,163 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=course
-      - POSTGRES_PORT=5434
+      - POSTGRES_DB=certificate
     ports:
-      - 5434:5432
+      - 5436:5432
 
-  db-user:
-    image: postgres:11.5-alpine
-    restart: always
-    shm_size: 128mb
-    volumes:
-      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=user
-    ports:
-      - 5433:5432
+  course-service:
+    build:
+      context: ../apps/course-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    env_file:
+      - ../apps/course-service/.env.local
+    depends_on:
+      - kafka
+      - course-db
+
+  # learning-service:
+  #   build:
+  #     context: ../apps/learning-service
+  #     dockerfile: ./Dockerfile
+  #     target: development
+  #   command: pnpm run start:dev
+  #   env_file:
+  #     - .env.local
+  #   depends_on:
+  #     - kafka
+  #     - db-learning
+
+  # messaging-service:
+  #   build:
+  #     context: ../apps/messaging-service
+  #     dockerfile: ./Dockerfile
+  #     target: development
+  #   command: pnpm run start:dev
+  #   env_file:
+  #     - .env.local
+  #   depends_on:
+  #     - kafka
+
+  # prakerja-service:
+  #   build:
+  #     context: ../apps/prakerja-service
+  #     dockerfile: ./Dockerfile
+  #     target: development
+  #   command: pnpm run start:dev
+  #   env_file:
+  #     - ../apps/prakerja-service/.env.local
+  #   depends_on:
+  #     - db-prakerja
+  #     - kafka
+
+  # transaction-service:
+  #   build:
+  #     context: ../apps/transaction-service
+  #     dockerfile: ./Dockerfile
+  #     target: development
+  #   command: pnpm run start:dev
+  #   env_file:
+  #     - .env.local
+  #   depends_on:
+  #     - kafka
+  #     - db-transaction
+
+  # user-service:
+  #   build:
+  #     context: ../apps/user-service
+  #     dockerfile: ./Dockerfile
+  #     target: development
+  #   command: pnpm run start:dev
+  #   env_file:
+  #     - .env.local
+  #   depends_on:
+  #     - kafka
+  #     - db-user
+
+  # db-course:
+  #   image: postgres:latest
+  #   restart: always
+  #   shm_size: 128mb
+  #   volumes:
+  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=course
+  #     - POSTGRES_PORT=5434
+  #   ports:
+  #     - 5434:5432
+
+  # db-learning:
+  #   image: postgres:latest
+  #   restart: always
+  #   shm_size: 128mb
+  #   volumes:
+  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=learning
+  #     - POSTGRES_PORT=5434
+  #   ports:
+  #     - 5437:5432
+
+  # db-messaging:
+  #   image: postgres:latest
+  #   restart: always
+  #   shm_size: 128mb
+  #   volumes:
+  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=messaging
+  #     - POSTGRES_PORT=5434
+  #   ports:
+  #     - 5438:5432
+
+  # db-prakerja:
+  #   image: postgres:latest
+  #   restart: always
+  #   shm_size: 128mb
+  #   volumes:
+  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=messaging
+  #     - POSTGRES_PORT=5434
+  #   ports:
+  #     - 5439:5432
+
+  # db-transaction:
+  #   image: postgres:latest
+  #   restart: always
+  #   shm_size: 128mb
+  #   volumes:
+  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=transaction
+  #     - POSTGRES_PORT=5434
+  #   ports:
+  #     - 5439:5432
+
+  # db-user:
+  #   image: postgres:11.5-alpine
+  #   restart: always
+  #   shm_size: 128mb
+  #   volumes:
+  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=user
+  #   ports:
+  #     - 5433:5432
 
   zoo:
     image: confluentinc/cp-zookeeper:latest
@@ -128,15 +277,3 @@ services:
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
     depends_on:
       - zoo
-
-  # control-center:
-  #   image: confluentinc/cp-enterprise-control-center:latest
-  #   hostname: control-center
-  #   depends_on:
-  #     - kafka
-  #   ports:
-  #     - "9021:9021"
-  #   environment:
-  #     CONTROL_CENTER_BOOTSTRAP_SERVERS: "host.docker.internal:29092"
-  #     CONTROL_CENTER_REPLICATION_FACTOR: 1
-  #     PORT: 9021
