@@ -98,6 +98,20 @@ services:
       - kafka
       - course-db
 
+  course-db:
+    image: postgres:latest
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=course
+      - POSTGRES_PORT=5434
+    ports:
+      - 5434:5432
+
   # learning-service:
   #   build:
   #     context: ../apps/learning-service
@@ -157,90 +171,7 @@ services:
   #     - kafka
   #     - db-user
 
-  # db-course:
-  #   image: postgres:latest
-  #   restart: always
-  #   shm_size: 128mb
-  #   volumes:
-  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_DB=course
-  #     - POSTGRES_PORT=5434
-  #   ports:
-  #     - 5434:5432
-
-  # db-learning:
-  #   image: postgres:latest
-  #   restart: always
-  #   shm_size: 128mb
-  #   volumes:
-  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_DB=learning
-  #     - POSTGRES_PORT=5434
-  #   ports:
-  #     - 5437:5432
-
-  # db-messaging:
-  #   image: postgres:latest
-  #   restart: always
-  #   shm_size: 128mb
-  #   volumes:
-  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_DB=messaging
-  #     - POSTGRES_PORT=5434
-  #   ports:
-  #     - 5438:5432
-
-  # db-prakerja:
-  #   image: postgres:latest
-  #   restart: always
-  #   shm_size: 128mb
-  #   volumes:
-  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_DB=messaging
-  #     - POSTGRES_PORT=5434
-  #   ports:
-  #     - 5439:5432
-
-  # db-transaction:
-  #   image: postgres:latest
-  #   restart: always
-  #   shm_size: 128mb
-  #   volumes:
-  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_DB=transaction
-  #     - POSTGRES_PORT=5434
-  #   ports:
-  #     - 5439:5432
-
-  # db-user:
-  #   image: postgres:11.5-alpine
-  #   restart: always
-  #   shm_size: 128mb
-  #   volumes:
-  #     - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
-  #   environment:
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - POSTGRES_DB=user
-  #   ports:
-  #     - 5433:5432
-
-  db-learning:
+  learning-db:
     image: postgres:11.5-alpine
     restart: always
     shm_size: 128mb
@@ -251,7 +182,62 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=user
     ports:
-      - 5436:5432
+      - 5437:5432
+
+  messaging-db:
+    image: postgres:latest
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=messaging
+      - POSTGRES_PORT=5434
+    ports:
+      - 5438:5432
+
+  prakerja-db:
+    image: postgres:latest
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=messaging
+      - POSTGRES_PORT=5434
+    ports:
+      - 5440:5432
+
+  transaction-db:
+    image: postgres:latest
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=transaction
+      - POSTGRES_PORT=5434
+    ports:
+      - 5439:5432
+
+  user-db:
+    image: postgres:11.5-alpine
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ../docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=user
+    ports:
+      - 5433:5432
 
   zoo:
     image: confluentinc/cp-zookeeper:latest
