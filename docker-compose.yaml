@@ -13,8 +13,8 @@ services:
       dockerfile: ./Dockerfile
       target: development
     command: pnpm run start:dev
-    env_file:
-      - ../apps/api-gateway-consumer/.env.local
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     ports:
       - 3000:3000
     depends_on:
@@ -28,8 +28,8 @@ services:
       dockerfile: ./Dockerfile
       target: development
     command: pnpm run start:dev
-    env_file:
-      - ../apps/api-gateway-learning/.env.local
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     ports:
       - 3001:3001
     depends_on:
