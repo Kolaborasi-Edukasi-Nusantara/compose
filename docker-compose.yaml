@@ -1,5 +1,9 @@
-version: "3"
+version: "3.8"
 name: vokraf-backend
+
+networks:
+  rabbitmq_nodejs:
+    driver: bridge # This is the default
 
 services:
   # api gateway
@@ -11,12 +15,12 @@ services:
     command: pnpm run start:dev
     env_file:
       - ../apps/api-gateway-consumer/.env.local
-    environment:
-      - KAFKA_HOST=host.docker.internal:29092
     ports:
       - 3000:3000
     depends_on:
-      - kafka
+      - rabbitmq
+    networks:
+      - rabbitmq_nodejs
 
   api-gateway-learning:
     build:
@@ -26,27 +30,165 @@ services:
     command: pnpm run start:dev
     env_file:
       - ../apps/api-gateway-learning/.env.local
-    environment:
-      - KAFKA_HOST=host.docker.internal:29092
     ports:
       - 3001:3001
     depends_on:
-      - kafka
+      - rabbitmq
+    networks:
+      - rabbitmq_nodejs
 
-  # blog
+  # services
   blog-service:
     build:
       context: ../apps/blog-service
       dockerfile: ./Dockerfile
       target: development
     command: pnpm run start:dev
-    env_file:
-      - ../apps/blog-service/.env.local
     environment:
-      - KAFKA_HOST=host.docker.internal:29092
+      - DATABASE_URL=postgresql://postgres:postgres@blog-db:5432/blog
+      - RABBITMQ_URL=amqp://rabbitmq:5672
     depends_on:
-      - kafka
+      - rabbitmq
       - blog-db
+    networks:
+      - rabbitmq_nodejs
+
+  certificate-service:
+    build:
+      context: ../apps/certificate-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@certificate-db:5432/certificate
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - rabbitmq
+      - certificate-db
+    networks:
+      - rabbitmq_nodejs
+
+  course-service:
+    build:
+      context: ../apps/course-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@course-db:5432/course
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - rabbitmq
+      - course-db
+    networks:
+      - rabbitmq_nodejs
+
+  learning-service:
+    build:
+      context: ../apps/learning-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@learning-db:5432/learning
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - rabbitmq
+      - learning-db
+    networks:
+      - rabbitmq_nodejs
+
+  marketplace-service:
+    build:
+      context: ../apps/marketplace-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@marketplace-db:5432/marketplace
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - marketplace-db
+      - rabbitmq
+    networks:
+      - rabbitmq_nodejs
+
+  messaging-service:
+    build:
+      context: ../apps/messaging-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@messaging-db:5432/messaging
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - messaging-db
+      - rabbitmq
+    networks:
+      - rabbitmq_nodejs
+
+  otp-service:
+    build:
+      context: ../apps/otp-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@otp-db:5432/otp
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - otp-db
+      - rabbitmq
+    networks:
+      - rabbitmq_nodejs
+
+  prakerja-service:
+    build:
+      context: ../apps/prakerja-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@prakerja-db:5432/prakerja
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - prakerja-db
+      - rabbitmq
+    networks:
+      - rabbitmq_nodejs
+
+  transaction-service:
+    build:
+      context: ../apps/transaction-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@transaction-db:5432/transaction
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - rabbitmq
+      - transaction-db
+    networks:
+      - rabbitmq_nodejs
+
+  user-service:
+    build:
+      context: ../apps/user-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@user-db:5432/user
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+    depends_on:
+      - rabbitmq
+      - user-db
+    networks:
+      - rabbitmq_nodejs
+
+  #database
 
   blog-db:
     image: postgres:latest
@@ -59,20 +201,9 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=blog
     ports:
-      - 5435:5432
-
-  # certificate
-  certificate-service:
-    build:
-      context: ../apps/certificate-service
-      dockerfile: ./Dockerfile
-      target: development
-    command: pnpm run start:dev
-    env_file:
-      - ../apps/certificate-service/.env.local
-    depends_on:
-      - kafka
-      - certificate-db
+      - 5441:5432
+    networks:
+      - rabbitmq_nodejs
 
   certificate-db:
     image: postgres:latest
@@ -85,20 +216,9 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=certificate
     ports:
-      - 5436:5432
-
-  # course
-  course-service:
-    build:
-      context: ../apps/course-service
-      dockerfile: ./Dockerfile
-      target: development
-    command: pnpm run start:dev
-    env_file:
-      - ../apps/course-service/.env.local
-    depends_on:
-      - kafka
-      - course-db
+      - 5442:5432
+    networks:
+      - rabbitmq_nodejs
 
   course-db:
     image: postgres:latest
@@ -111,22 +231,12 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=course
     ports:
-      - 5434:5432
-
-  learning-service:
-    build:
-      context: ../apps/learning-service
-      dockerfile: ./Dockerfile
-      target: development
-    command: pnpm run start:dev
-    env_file:
-      - ../apps/learning-service/.env.local
-    depends_on:
-      - kafka
-      - learning-db
+      - 5443:5432
+    networks:
+      - rabbitmq_nodejs
 
   learning-db:
-    image: postgres:11.5-alpine
+    image: postgres:latest
     restart: always
     shm_size: 128mb
     volumes:
@@ -136,67 +246,24 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=learning
     ports:
-      - 5437:5432
+      - 5444:5432
+    networks:
+      - rabbitmq_nodejs
 
-  # messaging-service:
-  #   build:
-  #     context: ../apps/messaging-service
-  #     dockerfile: ./Dockerfile
-  #     target: development
-  #   command: pnpm run start:dev
-  #   env_file:
-  #     - .env.local
-  #   depends_on:
-  #     - kafka
-
-  # prakerja-service:
-  #   build:
-  #     context: ../apps/prakerja-service
-  #     dockerfile: ./Dockerfile
-  #     target: development
-  #   command: pnpm run start:dev
-  #   env_file:
-  #     - ../apps/prakerja-service/.env.local
-  #   depends_on:
-  #     - db-prakerja
-  #     - kafka
-
-  # transaction-service:
-  #   build:
-  #     context: ../apps/transaction-service
-  #     dockerfile: ./Dockerfile
-  #     target: development
-  #   command: pnpm run start:dev
-  #   env_file:
-  #     - .env.local
-  #   depends_on:
-  #     - kafka
-  #     - db-transaction
-
-  # user-service:
-  #   build:
-  #     context: ../apps/user-service
-  #     dockerfile: ./Dockerfile
-  #     target: development
-  #   command: pnpm run start:dev
-  #   env_file:
-  #     - .env.local
-  #   depends_on:
-  #     - kafka
-  #     - db-user
-
-  # learning
-  # learning-service:
-  #   build:
-  #     context: ../apps/learning-service
-  #     dockerfile: ./Dockerfile
-  #     target: development
-  #   command: pnpm run start:dev
-  #   env_file:
-  #     - ../apps/learning-service/.env.local
-  #   depends_on:
-  #     - kafka
-  #     - learning-db
+  marketplace-db:
+    image: postgres:latest
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ./docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=marketplace
+    ports:
+      - 5445:5432
+    networks:
+      - rabbitmq_nodejs
 
   messaging-db:
     image: postgres:latest
@@ -209,7 +276,24 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=messaging
     ports:
-      - 5438:5432
+      - 5446:5432
+    networks:
+      - rabbitmq_nodejs
+
+  otp-db:
+    image: postgres:latest
+    restart: always
+    shm_size: 128mb
+    volumes:
+      - ./docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=otp
+    ports:
+      - 5447:5432
+    networks:
+      - rabbitmq_nodejs
 
   prakerja-db:
     image: postgres:latest
@@ -220,9 +304,11 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=messaging
+      - POSTGRES_DB=prakerja
     ports:
-      - 5440:5432
+      - 5448:5432
+    networks:
+      - rabbitmq_nodejs
 
   transaction-db:
     image: postgres:latest
@@ -235,10 +321,12 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=transaction
     ports:
-      - 5439:5432
+      - 5449:5432
+    networks:
+      - rabbitmq_nodejs
 
   user-db:
-    image: postgres:11.5-alpine
+    image: postgres:latest
     restart: always
     shm_size: 128mb
     volumes:
@@ -248,42 +336,18 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=user
     ports:
-      - 5433:5432
+      - 5450:5432
+    networks:
+      - rabbitmq_nodejs
 
-  zoo:
-    image: confluentinc/cp-zookeeper:latest
-    hostname: zoo
-    container_name: zoo
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    container_name: "rabbitmq"
     ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_SERVER_ID: 1
-      ZOOKEEPER_SERVERS: zoo:2888:3888
-      ALLOW_ANONYMOUS_LOGIN: yes
-
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    hostname: kafka
-    container_name: kafka
-    ports:
-      - "9092:9092"
-      - "29092:29092"
-      - "9999:9999"
-    environment:
-      KAFKAJS_NO_PARTITIONER_WARNING: 1
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_ZOOKEEPER_CONNECT: "zoo:2181"
-      KAFKA_BROKER_ID: 1
-      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_JMX_PORT: 9999
-      KAFKA_JMX_HOSTNAME: ${DOCKER_HOST_IP:-127.0.0.1}
-      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
-      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
-    depends_on:
-      - zoo
+      - 5673:5672
+      - 15672:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - rabbitmq_nodejs
