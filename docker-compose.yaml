@@ -83,6 +83,15 @@ services:
     networks:
       - rabbitmq_nodejs
 
+  file-service:
+    build:
+      context: ../apps/file-service
+      dockerfile: ./Dockerfile
+      target: development
+    command: pnpm run start:dev
+    networks:
+      - rabbitmq_nodejs
+
   learning-service:
     build:
       context: ../apps/learning-service
